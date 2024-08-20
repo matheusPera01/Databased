@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "index.js"
+    "start": "node index.js",
+    "build": "echo 'No build step required'",
+    "test": "echo 'No tests specified' && exit 0"
   },
   "keywords": [],
   "author": "",
