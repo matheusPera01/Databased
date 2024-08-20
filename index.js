@@ -6,6 +6,7 @@ import mustacheExpress from 'mustache-express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+dotenv.config();
 
 const app = express();
 
@@ -19,60 +20,50 @@ app.use(express.static('public'));
 app.use(cookieParser()); 
 app.set('views', path.join(__dirname, 'public'));
 
-dotenv.config();
-
 async function init() {
-    try{
+    try {
         const mysqli = mysql.createPool({
-            host: "localhost",
-            user: "root",
-            password: "",
-            database: "bd_test",
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
         });
 
         app.post('/cadastro', async (req, res) => {
             const {nome, email, senha} = req.body;
-            try{
+            try {
                 const [results] = await mysqli.execute('INSERT INTO usuario(nome, email, senha) VALUES (?, ?, ?)', [nome, email, senha]);
                 console.log("Inserção feita com sucesso");
-                res.redirect("/login.html")
+                res.redirect("/login.html");
+            } catch (err) {
+                console.log("Deu erro ao fazer a inserção", err);
             }
-            catch(err){
-                console.log("deu erro ao fazer a inserção", err)
-            }
-        })
+        });
+
         app.post('/login', async (req, res) => {
             const {email, senha} = req.body;
-            try{
+            try {
                 const [rows] = await mysqli.execute('SELECT * FROM usuario WHERE email = ? AND senha = ?', [email, senha]);
-                if(rows.length > 0) {
-                    console.log("login bem sucedido")
-                    console.log(email)
+                if (rows.length > 0) {
+                    console.log("Login bem sucedido");
                     res.render('main.mustache', { email: email }); 
-                   
+                } else {
+                    console.log("A senha ou email está errado");
                 }
-                else{
-                    console.log("A senha ou email esta errado")
-                }
+            } catch (err) {
+                console.log("Deu erro ao fazer login", err);
             }
-            catch(err){
-                console.log("deu erro ao fazer login")
-            }
-        })
+        });
 
-
+    } catch (err) {
+        console.log("Deu erro ao tentar conectar ao banco de dados", err);
     }
-    catch(err){
-        console.log("deu erro ao tentar conectar ao banco de dados", err)
-    }
-};
+}
 
 init();
 
-app.listen(3000, () => {
-    console.log("O servidor esta rodando na porta 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`O servidor está rodando na porta ${PORT}`);
 });
-console.log('Host:', 'roundhouse.proxy.rlwy.net');
-console.log('User:', 'root');
-console.log('Database:', 'railway');
-console.log('Port:', 48116);
